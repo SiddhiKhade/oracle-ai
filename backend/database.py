@@ -10,8 +10,20 @@ _drift_buffer = []
 def get_client():
     global _client
     if _client is None:
+        import json
+        import os
         from config import GCP_PROJECT_ID
-        _client = bigquery.Client(project=GCP_PROJECT_ID)
+        creds_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+        if creds_json:
+            from google.oauth2 import service_account
+            creds_dict = json.loads(creds_json)
+            credentials = service_account.Credentials.from_service_account_info(
+                creds_dict,
+                scopes=["https://www.googleapis.com/auth/bigquery"]
+            )
+            _client = bigquery.Client(project=GCP_PROJECT_ID, credentials=credentials)
+        else:
+            _client = bigquery.Client(project=GCP_PROJECT_ID)
     return _client
 
 def get_dataset_ref():
