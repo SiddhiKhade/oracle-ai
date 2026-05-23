@@ -5,7 +5,7 @@ import {
   ResponsiveContainer
 } from "recharts";
 
-const API = "http://localhost:8000";
+const API = "https://oracle-ai-hmxz.onrender.com";
 
 const MODEL_COLORS: Record<string, string> = {
   gpt4: "#a78bfa",
