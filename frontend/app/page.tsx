@@ -980,7 +980,7 @@ export default function Home() {
               <circle cx="9" cy="9" r="1.5" fill="rgba(255,255,255,0.35)" />
             </svg>
             <span style={{ fontSize: 12, color: "rgba(255,255,255,0.2)", fontFamily: "'DM Mono', monospace" }}>
-              ORACLE · Built by Siddhi Khade · {new Date().getFullYear()}
+            ORACLE · Built with curiosity · Siddhi & Aksh · {new Date().getFullYear()}
             </span>
           </div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.1)", fontFamily: "'DM Mono', monospace" }}>
