@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+backend/venv/
+node_modules/
+.next/
+*.egg-info/
+.DS_Store
+oracle-ai-497120-216fb338b8d0.json

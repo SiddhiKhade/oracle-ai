@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+langchain
+langchain-openai
+langchain-anthropic
+openai
+anthropic
+google-generativeai
+google-cloud-bigquery
+apscheduler
+python-dotenv
+yfinance
+requests
+pydantic
+langchain-google-genai>=4.0.0
