@@ -1,11 +1,27 @@
 from google.cloud import bigquery
-from config import GCP_PROJECT_ID, BIGQUERY_DATASET
 import datetime
+import os
 
-client = bigquery.Client(project=GCP_PROJECT_ID)
-dataset_ref = f"{GCP_PROJECT_ID}.{BIGQUERY_DATASET}"
+# Client initialized lazily so config.py credentials run first
+_client = None
+_probe_buffer = []
+_drift_buffer = []
+
+def get_client():
+    global _client
+    if _client is None:
+        from config import GCP_PROJECT_ID
+        _client = bigquery.Client(project=GCP_PROJECT_ID)
+    return _client
+
+def get_dataset_ref():
+    from config import GCP_PROJECT_ID, BIGQUERY_DATASET
+    return f"{GCP_PROJECT_ID}.{BIGQUERY_DATASET}"
 
 def create_tables():
+    client = get_client()
+    dataset_ref = get_dataset_ref()
+
     schema_probe_results = [
         bigquery.SchemaField("run_id", "STRING"),
         bigquery.SchemaField("timestamp", "TIMESTAMP"),
@@ -20,6 +36,7 @@ def create_tables():
         bigquery.SchemaField("error_rate", "FLOAT"),
         bigquery.SchemaField("primary_answer", "STRING"),
     ]
+
     schema_drift = [
         bigquery.SchemaField("timestamp", "TIMESTAMP"),
         bigquery.SchemaField("model", "STRING"),
@@ -29,6 +46,7 @@ def create_tables():
         bigquery.SchemaField("anomaly_detected", "BOOL"),
         bigquery.SchemaField("z_score", "FLOAT"),
     ]
+
     for table_id, schema in [
         ("probe_results", schema_probe_results),
         ("drift_scores", schema_drift)
@@ -40,10 +58,6 @@ def create_tables():
             print(f"Created table {table_id}")
         except Exception as e:
             print(f"Table {table_id} already exists or error: {e}")
-
-# In-memory buffer — batch insert at end of probe run
-_probe_buffer = []
-_drift_buffer = []
 
 def insert_probe_result(run_id, question_id, question, model,
                         confidence, consistency, uncertainty,
@@ -76,8 +90,9 @@ def insert_drift_score(model, avg_confidence, avg_consistency,
     })
 
 def flush_to_bigquery():
-    """Call this once at the end of a probe run to batch insert everything."""
     global _probe_buffer, _drift_buffer
+    client = get_client()
+    dataset_ref = get_dataset_ref()
 
     if _probe_buffer:
         table_ref = f"{dataset_ref}.probe_results"
@@ -108,6 +123,8 @@ def flush_to_bigquery():
         _drift_buffer = []
 
 def get_drift_history(model: str, days: int = 30) -> list:
+    client = get_client()
+    dataset_ref = get_dataset_ref()
     query = f"""
         SELECT timestamp, avg_confidence, avg_consistency,
                avg_accuracy, anomaly_detected, z_score
@@ -124,6 +141,8 @@ def get_drift_history(model: str, days: int = 30) -> list:
         return []
 
 def get_latest_scores() -> list:
+    client = get_client()
+    dataset_ref = get_dataset_ref()
     query = f"""
         SELECT model,
                AVG(confidence_score) as avg_confidence,
