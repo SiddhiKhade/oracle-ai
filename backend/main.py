@@ -19,8 +19,18 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    create_tables()
-    start_scheduler()
+    try:
+        create_tables()
+    except Exception as e:
+        print(f"Warning: Could not create tables: {e}")
+    try:
+        start_scheduler()
+    except Exception as e:
+        print(f"Warning: Could not start scheduler: {e}")
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 @app.get("/")
 def root():
